@@ -38,11 +38,24 @@ public static class ServiceCollectionExtensions
                 });
         });
 
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend2",
+                builder =>
+                {
+                    builder.WithOrigins("https://chef-spacey.vercel.app")
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
+        });
+
         var assembly = typeof(Program).Assembly;
         services.AddValidatorsFromAssembly(assembly);
         services.AddMediatR(config => config.RegisterServicesFromAssembly(assembly));
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserContext, UserContext>();
+        services.AddScoped<IPythonService, PythonService>();
         services.AddCarter();
 
     }

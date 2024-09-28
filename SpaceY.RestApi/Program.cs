@@ -68,7 +68,7 @@ app.MapCarter();
 app.UseHttpsRedirection();
 
 
-app.MapGet("test", async (ISender sender) =>
+app.MapGet("test", (ISender sender) =>
 {
     return Results.Ok("works");
 })

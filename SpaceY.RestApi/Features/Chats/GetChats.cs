@@ -31,7 +31,7 @@ public static class GetChats
 
             var dtos = await _dbContext.Chats
                 .Where(c => c.UserId == userId)
-                .OrderByDescending(c => c.CreatedAt)
+                .OrderByDescending(c => c.ModifiedAt)
                 .Select(c => new ChatSummaryDto
                 {
                     Id = c.Id,

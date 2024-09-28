@@ -1,5 +1,6 @@
 ﻿using Carter;
 using FluentValidation;
+using Flurl.Http;
 using Mapster;
 using MediatR;
 using SpaceY.RestApi.Contracts.Dtos;
@@ -41,14 +42,17 @@ public static class CreateChat
         private readonly IUserContext _userContext;
         private readonly IValidator<Command> _validator;
         private readonly AppDbContext _dbContext;
+        private readonly IPythonService _pythonService;
 
         public Handler(IUserContext userContext,
             IValidator<Command> validator,
-            AppDbContext dbContext)
+            AppDbContext dbContext,
+            IPythonService pythonService)
         {
             _userContext = userContext;
             _validator = validator;
             _dbContext = dbContext;
+            _pythonService = pythonService;
         }
 
         public async Task<Result<Guid>> Handle(Command request, CancellationToken cancellationToken)
@@ -63,14 +67,24 @@ public static class CreateChat
 
             var userId = _userContext.GetCurrentUserId();
 
+
             var chat = new Chat
             {
-                CreatedAt = DateTime.UtcNow,
+                ModifiedAt = DateTime.UtcNow,
                 Title = request.Title,
                 Id = Guid.NewGuid(),
                 Url = request.Url,
                 UserId = userId!,
             };
+
+            var result = await _pythonService.CreateChatAsync(chat.Id, request.Url);
+
+            if(result.status == "error")
+            {
+                return Result.Failure<Guid>(new Error(
+                 "CreateChat.ExternalApiError",
+                 "Some error occured."));
+            }
 
             var message = new Message
             {
@@ -79,11 +93,30 @@ public static class CreateChat
                 IsFromUser = request.Message.IsFromUser
             };
 
+            var response = await _pythonService.SendMessageAsync(request.Message.Content, chat.Id);
+
+            if(response.Status == "error")
+            {
+                return Result.Failure<Guid>(new Error(
+                 "CreateChat.ResponseFromPthonFailed",
+                 "Some error occured."));
+            }
+
+            var responseMessage = new Message
+            {
+                ChatId = chat.Id,
+                Content = response.Content!,
+                IsFromUser = false,
+                Id = Guid.NewGuid()
+            };
+
+
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
                 await _dbContext.Chats.AddAsync(chat, cancellationToken);
                 await _dbContext.Messages.AddAsync(message, cancellationToken);
+                await _dbContext.Messages.AddAsync(responseMessage, cancellationToken);
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
