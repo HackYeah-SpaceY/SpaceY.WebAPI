@@ -1,6 +1,8 @@
 using Carter;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using SpaceY.RestApi.Contracts.Requests;
 using SpaceY.RestApi.Extensions;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
@@ -64,6 +66,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapCarter();
 app.UseHttpsRedirection();
+
+
+app.MapGet("test", async (ISender sender) =>
+{
+    return Results.Ok("works");
+})
+    .RequireAuthorization()
+    .WithTags("Test");
 
 app.Run();
 
