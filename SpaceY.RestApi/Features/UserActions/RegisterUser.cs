@@ -1,7 +1,9 @@
 ﻿using Carter;
 using FluentValidation;
+using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using SpaceY.RestApi.Contracts.Requests;
 using SpaceY.RestApi.Database;
 using SpaceY.RestApi.Entities;
 using SpaceY.RestApi.Shared;
@@ -34,13 +36,7 @@ public static class RegisterUser
                 .EmailAddress();
 
             RuleFor(c => c.Password)
-              .NotEmpty()
-              .MinimumLength(8)
-              .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
-              .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter.")
-              .Matches(@"[0-9]").WithMessage("Password must contain at least one digit.")
-              .Matches(@"[\W_]").WithMessage("Password must contain at least one special character.")
-              .Matches(@"^[^\s]*$").WithMessage("Password must not contain whitespace characters.");
+              .NotEmpty();
 
 
             RuleFor(c => c.ConfirmPassword)
@@ -59,18 +55,15 @@ public static class RegisterUser
 
         public Handler(UserManager<User> userManager,
             IValidator<Command> validator,
-            AppDbContext dbContext,
-            ILogger<Handler> logger)
+            AppDbContext dbContext)
         {
             _userManager = userManager;
             _validator = validator;
             _dbContext = dbContext;
-            _logger = logger;
         }
 
         public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Processing register request.");
 
             var validationResult = await _validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -84,7 +77,7 @@ public static class RegisterUser
 
             if (isUnique is not null)
             {
-                _logger.LogInformation("Processing register request failed, account with email: {@email} already exist.", request.Email);
+                 
 
                 return Result.Failure(new Error(
                   ErrorCodes.EmailInUse,
@@ -103,7 +96,6 @@ public static class RegisterUser
                   "There was an error while registering a user."));
             }
 
-            _logger.LogInformation("New user has registered {@User}.", user);
 
             return Result.Success();
         }
@@ -116,8 +108,10 @@ public class RegisterUserEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("auth/register", async (RegisterUser.Command command, ISender sender) =>
+        app.MapPost("auth/register", async (RegisterUserRequest request, ISender sender) =>
         {
+            var command = request.Adapt<RegisterUser.Command>();
+
             var result = await sender.Send(command);
 
             if (result.IsFailure)

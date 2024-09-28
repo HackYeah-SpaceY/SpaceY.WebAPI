@@ -1,7 +1,9 @@
 ﻿using Carter;
 using FluentValidation;
+using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using SpaceY.RestApi.Contracts.Requests;
 using SpaceY.RestApi.Contracts.Responses;
 using SpaceY.RestApi.Entities;
 using SpaceY.RestApi.Services;
@@ -110,8 +112,10 @@ public class LoginUserEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("auth/login", async (LoginUser.Command command, ISender sender) =>
+        app.MapPost("auth/login", async (LoginUserRequest request, ISender sender) =>
         {
+            var command = request.Adapt<LoginUser.Command>();
+
             var result = await sender.Send(command);
 
             if (result.IsFailure)

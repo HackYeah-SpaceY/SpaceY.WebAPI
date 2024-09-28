@@ -1,7 +1,9 @@
 ﻿using Carter;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SpaceY.RestApi.Database;
+using SpaceY.RestApi.Entities;
 using SpaceY.RestApi.Services;
 using System;
 
@@ -18,6 +20,14 @@ public static class ServiceCollectionExtensions
 
     public static void AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddIdentity<User, IdentityRole>(options =>
+        {
+            //Wymagania hasla
+        }).AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+
+
+
         var assembly = typeof(Program).Assembly;
         services.AddValidatorsFromAssembly(assembly);
         services.AddMediatR(config => config.RegisterServicesFromAssembly(assembly));
