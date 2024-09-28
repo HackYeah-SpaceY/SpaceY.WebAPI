@@ -1,0 +1,6 @@
+@SpaceY.RestApi_HostAddress = http://localhost:5007
+
+GET {{SpaceY.RestApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
