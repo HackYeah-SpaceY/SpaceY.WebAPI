@@ -42,6 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssembly(assembly);
         services.AddMediatR(config => config.RegisterServicesFromAssembly(assembly));
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserContext, UserContext>();
         services.AddCarter();
 
     }
