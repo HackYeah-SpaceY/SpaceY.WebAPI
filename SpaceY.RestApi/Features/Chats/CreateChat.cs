@@ -13,12 +13,13 @@ namespace SpaceY.RestApi.Features.Chats;
 
 public static class CreateChat
 {
-    public class Command : IRequest<Result>
+    public class Command : IRequest<Result<Guid>>
     {
         public string Url { get; set; } = default!;
+        public string Title { get; set; } = default!;
         public MessageDto Message { get; set; } = default!;
     }
-
+     
     public class Validator : AbstractValidator<Command>
     {
         public Validator()
@@ -26,13 +27,16 @@ public static class CreateChat
             RuleFor(x => x.Url)
                 .NotEmpty();
 
+            RuleFor(x => x.Title)
+               .NotEmpty();
+
             RuleFor(x => x.Message)
                 .NotEmpty();
         }
     }
 
 
-    internal sealed class Handler : IRequestHandler<Command, Result>
+    internal sealed class Handler : IRequestHandler<Command, Result<Guid>>
     {
         private readonly IUserContext _userContext;
         private readonly IValidator<Command> _validator;
@@ -47,12 +51,12 @@ public static class CreateChat
             _dbContext = dbContext;
         }
 
-        public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<Result<Guid>> Handle(Command request, CancellationToken cancellationToken)
         {
             var validationResult = await _validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
-                return Result.Failure(new Error(
+                return Result.Failure<Guid>(new Error(
                    "CreateChat.Validation",
                    validationResult.ToString()));
             }
@@ -62,6 +66,7 @@ public static class CreateChat
             var chat = new Chat
             {
                 CreatedAt = DateTime.UtcNow,
+                Title = request.Title,
                 Id = Guid.NewGuid(),
                 Url = request.Url,
                 UserId = userId!,
@@ -84,12 +89,12 @@ public static class CreateChat
 
                 await transaction.CommitAsync(cancellationToken);
 
-                return Result.Success();
+                return Result.Success(chat.Id);
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
-                return Result.Failure(new Error(
+                return Result.Failure<Guid>(new Error(
                    "CreateChat.TransactionFailed",
                    ex.Message));
             }
@@ -113,7 +118,7 @@ public class CreateChatEndpoint : ICarterModule
                 return Results.BadRequest(result.Error);
             }
 
-            return Results.Ok();
+            return Results.Ok(new { chatId = result.Value});
         })
         .RequireAuthorization()
         .WithTags("Chats");

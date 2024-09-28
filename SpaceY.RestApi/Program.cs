@@ -72,8 +72,8 @@ app.MapGet("test", async (ISender sender) =>
 {
     return Results.Ok("works");
 })
-    .RequireAuthorization()
-    .WithTags("Test");
+.RequireAuthorization()
+.WithTags("Test");
 
 app.Run();
 
