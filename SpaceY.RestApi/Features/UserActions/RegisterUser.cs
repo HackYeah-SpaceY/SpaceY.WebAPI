@@ -36,7 +36,13 @@ public static class RegisterUser
                 .EmailAddress();
 
             RuleFor(c => c.Password)
-              .NotEmpty();
+              .NotEmpty()
+              .MinimumLength(8)
+              .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
+              .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter.")
+              .Matches(@"[0-9]").WithMessage("Password must contain at least one digit.")
+              .Matches(@"[\W_]").WithMessage("Password must contain at least one special character.")
+              .Matches(@"^[^\s]*$").WithMessage("Password must not contain whitespace characters.");
 
 
             RuleFor(c => c.ConfirmPassword)
@@ -50,8 +56,6 @@ public static class RegisterUser
     {
         private readonly UserManager<User> _userManager;
         private readonly IValidator<Command> _validator;
-        private readonly AppDbContext _dbContext;
-        private readonly ILogger<Handler> _logger;
 
         public Handler(UserManager<User> userManager,
             IValidator<Command> validator,
@@ -59,7 +63,6 @@ public static class RegisterUser
         {
             _userManager = userManager;
             _validator = validator;
-            _dbContext = dbContext;
         }
 
         public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
