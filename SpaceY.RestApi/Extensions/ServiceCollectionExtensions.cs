@@ -26,7 +26,17 @@ public static class ServiceCollectionExtensions
         }).AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
-
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend",
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:3001")
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
+        });
 
         var assembly = typeof(Program).Assembly;
         services.AddValidatorsFromAssembly(assembly);

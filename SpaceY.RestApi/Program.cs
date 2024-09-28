@@ -59,10 +59,14 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseSerilogRequestLogging();
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapCarter();
 app.UseHttpsRedirection();
 
 app.Run();
+
+
+
 
