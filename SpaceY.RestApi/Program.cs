@@ -62,6 +62,7 @@ if (app.Environment.IsDevelopment())
 
 //app.UseSerilogRequestLogging();
 app.UseCors("AllowFrontend");
+app.UseCors("AllowFrontend2");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapCarter();
