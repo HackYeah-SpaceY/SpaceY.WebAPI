@@ -14,13 +14,14 @@ using Mapster;
 using Carter;
 using SpaceY.RestApi.Features.Chats;
 using SpaceY.RestApi.Contracts.Requests;
+using SpaceY.RestApi.Contracts.Responses;
 
 namespace SpaceY.RestApi.Features.Messages;
 
 public static class AddMessage
 {
 
-    public class Command : IRequest<Result<List<MessageDto>>>
+    public class Command : IRequest<Result<AddMessageResponse>>
     {
         public Guid ChatId { get; set; }
         public string Content { get; set; } = default!;
@@ -39,7 +40,7 @@ public static class AddMessage
     }
 
 
-    internal sealed class Handler : IRequestHandler<Command, Result<List<MessageDto>>>
+    internal sealed class Handler : IRequestHandler<Command, Result<AddMessageResponse>>
     {
         private readonly AppDbContext _dbContext;
         private readonly IUserContext _userContext;
@@ -55,7 +56,7 @@ public static class AddMessage
         }
 
 
-        public async Task<Result<List<MessageDto>>> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<Result<AddMessageResponse>> Handle(Command request, CancellationToken cancellationToken)
         {
             var userId = _userContext.GetCurrentUserId();
 
@@ -72,6 +73,21 @@ public static class AddMessage
 
             var response = await _pythonService.SendMessageAsync(request.Content, request.ChatId);
 
+            if (response.Status == "error")
+            {
+                return Result.Failure<AddMessageResponse>(new Error(
+                 "CreateChat.ExternalApiError",
+                 "Some error occured."));
+            }
+
+
+            var screenshot = new Screenshot
+            {
+                ChatId = request.ChatId,
+                FilePath = response.ScreenshotPath!,
+            };
+
+            await _dbContext.Screenshots.AddAsync(screenshot);
 
             var responseMessage = new Message
             {
@@ -89,9 +105,20 @@ public static class AddMessage
                 .OrderBy(m => m.SentAt)
                 .ToListAsync() ;
 
-            var dtos = messages.Adapt<List<MessageDto>>();
+            var screenshots = await _dbContext.Screenshots.Where(s => s.ChatId == request.ChatId)
+                .OrderBy(s => s.CreatedAt)
+                .ToListAsync();
 
-            return Result.Success(dtos);
+            var messagesDtos = messages.Adapt<List<MessageDto>>();
+            var screenshotsDtos = screenshots.Adapt<List<ScreenshotDto>>();
+
+            var addMessageRespons = new AddMessageResponse
+            {
+                Messages = messagesDtos,
+                Screenshots = screenshotsDtos
+            };
+
+            return Result.Success(addMessageRespons);
         }
     }
 }

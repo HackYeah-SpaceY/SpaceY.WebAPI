@@ -102,6 +102,13 @@ public static class CreateChat
                  "Some error occured."));
             }
 
+            var screenshot = new Screenshot
+            {
+                ChatId = chat.Id,
+                FilePath = response.ScreenshotPath!,
+            };
+
+
             var responseMessage = new Message
             {
                 ChatId = chat.Id,
@@ -114,9 +121,7 @@ public static class CreateChat
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
-                await _dbContext.Chats.AddAsync(chat, cancellationToken);
-                await _dbContext.Messages.AddAsync(message, cancellationToken);
-                await _dbContext.Messages.AddAsync(responseMessage, cancellationToken);
+                await _dbContext.AddRangeAsync(new object[] { chat, message, responseMessage, screenshot }, cancellationToken);
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
