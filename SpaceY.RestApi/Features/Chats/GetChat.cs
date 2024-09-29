@@ -36,10 +36,22 @@ public static class GetChat
 
             var chat = await _dbContext.Chats
                 .Include(c => c.Screenshots)
-                .Include(c => c.Messages)
+                .Include(c => c.Messages) 
                 .FirstOrDefaultAsync(c => c.Id == request.Id);
 
-            if(chat!.UserId != userid)
+            // Sortowanie wiadomości po pobraniu
+            if (chat != null && chat.Messages != null)
+            {
+                chat.Messages = chat.Messages.OrderBy(m => m.SentAt).ToList();
+                
+            }
+
+            if(chat!.Screenshots is not null)
+            {
+                chat.Screenshots = chat.Screenshots!.OrderBy(s => s.CreatedAt).ToList();
+            }
+
+            if (chat!.UserId != userid)
             {
                 return Result.Failure<ChatDto>(new Error(
                    "CreateChat.NotAllowed",
