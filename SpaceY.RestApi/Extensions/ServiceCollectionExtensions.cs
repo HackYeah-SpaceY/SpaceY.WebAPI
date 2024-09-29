@@ -22,7 +22,10 @@ public static class ServiceCollectionExtensions
     {
         services.AddIdentity<User, IdentityRole>(options =>
         {
-            //Wymagania hasla
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 0;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
         }).AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
