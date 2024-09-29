@@ -26,27 +26,38 @@ public static class ServiceCollectionExtensions
         }).AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowFrontend",
-                builder =>
-                {
-                    builder.WithOrigins("http://localhost:3001")
-                          .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials();
-                });
-        });
+        //services.AddCors(options =>
+        //{
+        //    options.AddPolicy("AllowFrontend",
+        //        builder =>
+        //        {
+        //            builder.WithOrigins("http://localhost:3001")
+        //                  .AllowAnyMethod()
+        //                  .AllowAnyHeader()
+        //                  .AllowCredentials();
+        //        });
+        //});
+
+        //services.AddCors(options =>
+        //{
+        //    options.AddPolicy("AllowFrontend2",
+        //        builder =>
+        //        {
+        //            builder.WithOrigins("https://chef-spacey.vercel.app")
+        //                  .AllowAnyMethod()
+        //                  .AllowAnyHeader()
+        //                  .AllowCredentials();
+        //        });
+        //});
 
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowFrontend2",
+            options.AddPolicy("AllowAll",
                 builder =>
                 {
-                    builder.WithOrigins("https://chef-spacey.vercel.app")
+                    builder.AllowAnyOrigin()
                           .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials();
+                          .AllowAnyHeader();
                 });
         });
 
