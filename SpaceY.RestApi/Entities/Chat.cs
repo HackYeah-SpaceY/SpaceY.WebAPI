@@ -6,6 +6,7 @@ public class Chat
     public string? Title { get; set; }
     public string Url { get; set; } = default!;
     public DateTime ModifiedAt { get; set; } = DateTime.UtcNow;
+    public bool IsArchived { get; set; }
     public string UserId { get; set; } = default!;
     public User? User { get; set; }
 

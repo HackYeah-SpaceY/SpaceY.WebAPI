@@ -16,9 +16,9 @@ public interface IPythonService
 
 public class PythonService : IPythonService
 {
-    //private readonly string? mainUrl = System.Environment.GetEnvironmentVariable("PythonUrl");
+    private readonly string? mainUrl = System.Environment.GetEnvironmentVariable("PythonUrl");
     //private readonly string mainUrl = "https://spacey-processor-production.up.railway.app";
-    private readonly string mainUrl = "https://5b72-89-171-58-3.ngrok-free.app";
+    //private readonly string mainUrl = "https://5b72-89-171-58-3.ngrok-free.app";
     public async Task<ResponseMessage> SendMessageAsync(string message, Guid chatId)
     {
         var url = mainUrl + "/message";
