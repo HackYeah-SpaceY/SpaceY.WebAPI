@@ -36,14 +36,7 @@ public static class RegisterUser
                 .EmailAddress();
 
             RuleFor(c => c.Password)
-              .NotEmpty()
-              .MinimumLength(8)
-              .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
-              .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter.")
-              .Matches(@"[0-9]").WithMessage("Password must contain at least one digit.")
-              .Matches(@"[\W_]").WithMessage("Password must contain at least one special character.")
-              .Matches(@"^[^\s]*$").WithMessage("Password must not contain whitespace characters.");
-
+              .NotEmpty();
 
             RuleFor(c => c.ConfirmPassword)
                 .Equal(c => c.Password).WithMessage("Passwords must match.")
