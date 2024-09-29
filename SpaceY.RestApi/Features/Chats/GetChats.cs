@@ -36,6 +36,7 @@ public static class GetChats
                 {
                     Id = c.Id,
                     Title = c.Title,
+                    IsArchived = c.IsArchived
                 }).ToListAsync();
 
             return Result.Success(dtos);
